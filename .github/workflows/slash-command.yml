@@ -1,0 +1,26 @@
+name: slash-command
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  slash_command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slash Command Dispatch
+        id: slash_command
+        uses: peter-evans/slash-command-dispatch@v3
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          reaction-token: ${{ github.token.GITHUB_TOKEN }}
+          commands: |
+            train
+            deploy
+          permission: write
+          issue-type: pull-request
+          dispatch-type: workflow
+          static-args: |
+            repository=${{ github.repository }}
+            issue-number=${{ github.event.issue.number }}
+            comment-id=${{ github.event.comment.id }}

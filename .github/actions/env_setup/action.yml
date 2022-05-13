@@ -1,0 +1,44 @@
+name: "Environment setup"
+description: 'Setting up related environment and environment variable'
+inputs:
+  event_name:
+    description: 'Name of the event that triggered the workflow'
+    required: true
+  issue_number:
+    description: "Issue number that triggered the workflow"
+    required: false
+  az_secret:
+    description: "Azure credentials (secrets.AZURE_CREDENTIALS cannot be properly parsed here)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set ref to checkout
+      run: |
+          if [ -z "${{ inputs.issue_number }}" ]; then 
+           ref=${{ github.ref }}
+          else
+           ref=refs/pull/${{ inputs.issue_number }}/head
+          fi
+          echo "REF=$ref" >> $GITHUB_ENV
+      shell: bash
+      
+    - name: Check Out Repository
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ env.REF }}
+
+    - name: Azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{ inputs.az_secret }}
+
+    - name: Configure workspace and resource group
+      shell: bash
+      run: |
+       az extension add -n azure-cli-ml
+       az ml folder attach -w $WS -g $RG
+      env:
+        WS: ${{ inputs.az_workspace }}
+        RG: ${{ inputs.az_resource_group }}

@@ -1,0 +1,25 @@
+name: stale-check
+
+on:
+  schedule:
+  - cron: "30 1 * * *"
+
+jobs:
+  stale:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/stale@v4
+      with:
+        days-before-stale: 30
+        days-before-close: 7
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: |
+          This issue has been stale for the past month,
+          is it okay to close it? If no action is taken, it'll be closed in 7 days
+        stale-pr-message: |
+          This PR has been stale for the past month,
+          is it okay to close it? If no action taken, it'll be closed in 7 days
+        stale-issue-label: "no-activity"
+        stale-pr-label: "no-activity"

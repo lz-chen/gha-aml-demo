@@ -1,0 +1,60 @@
+name: continuous-deployment
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - code/**
+
+concurrency: deployment-${{ github.ref }}
+
+jobs:
+  deployment-stg:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Invoke training workflow
+        uses: aurelien-baudet/workflow-dispatch@v2.1.1
+        with:
+          workflow: aml-train
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          wait-for-completion: true
+          wait-for-completion-interval: 10s
+
+      - name: Invoke deploy workflow
+        uses: aurelien-baudet/workflow-dispatch@v2.1.1
+        with:
+          workflow: aml-deploy
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          inputs: |
+            { "deploy-to": "Staging"}
+          wait-for-completion: true
+          wait-for-completion-interval: 10s
+
+  deployment-prd:
+    needs: [deployment-stg]
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Invoke training workflow
+        uses: aurelien-baudet/workflow-dispatch@v2.1.1
+        with:
+          workflow: aml-train
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          wait-for-completion: true
+          wait-for-completion-interval: 10s
+
+      - name: Invoke deploy workflow
+        uses: aurelien-baudet/workflow-dispatch@v2.1.1
+        with:
+          workflow: aml-deploy
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          inputs: |
+            { "deploy-to": "Production"}
+          wait-for-completion: true
+          wait-for-completion-interval: 10s
+

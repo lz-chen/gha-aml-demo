@@ -1,0 +1,96 @@
+name: aml-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy-to:
+        description: "Environment to deploy to. Development|Staging|Production"
+        required: false
+        default: "Development"
+      model-name:
+        description: "Name of the model to deploy to"
+        required: false
+        default: "iris_model"
+      model-version:
+        description: "Version of the model to deploy to"
+        required: false
+        default: ''
+      az-workspace:
+        description: 'Azure workspace'
+        required: false
+        default: "lc-onboarding"
+      az-resource-group:
+        description: "Azure resource group"
+        required: false
+        default: "lc-test"
+      repository:
+        description: "The repository from which the slash command was dispatched"
+        required: false
+      comment-id:
+        description: "The comment-id of the slash command"
+        required: false
+      issue-number:
+        description: "The issue number from which the slash command was created"
+        required: false
+
+concurrency: deploy-refs/pull/${{ github.event.inputs.issue-number }}/head
+
+jobs:
+  deploy:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.deploy-to }}
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check Out Repository
+        id: checkout_repository
+        uses: actions/checkout@v3
+
+      - name: Setup
+        uses: ./.github/actions/env_setup
+        with:
+          event_name: ${{ github.event_name }}
+          issue_number: ${{ github.event.inputs.issue-number }}
+          az_workspace: ${{ github.event.inputs.az-workspace || 'lc-onboarding' }}
+          az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
+          az_secret: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create URL to the run output
+        id: vars
+        run: echo ::set-output name=run-url::https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+      - name: Create comment
+        if: ${{ github.event.inputs.issue-numer != '' }}
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          issue-number:  ${{ github.event.inputs.issue-number }}
+          body: |
+            Deploying model, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
+
+
+      - name: Deploy model
+        run: |
+          if [ -z "${MODEL_VERSION}" ]; then
+            MODEL_VERSION=$( az ml model list -l -n ${MODEL_NAME} | jq '.[0].version')
+            echo "No model-version passed, setting it to the newest version ${MODEL_VERSION}"
+          fi
+          az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
+           --inference-config-file ./config/inference_config.json \
+           --deploy-config-file ./config/aks_deploy.json \
+           --overwrite --compute-target aks-cluster-new
+        env:
+          MODEL_NAME:  ${{ github.event.inputs.model-name }}
+          MODEL_VERSION: ${{ github.event.inputs.model-version }}
+          WORKSPACE: ${{ github.event.inputs.az-workspace }}
+          GROUP: ${{ github.event.inputs.az-resource-group }}
+
+      - name: Create comment
+        if: ${{ github.event.inputs.issue-numer != '' }}
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          issue-number:  ${{ github.event.inputs.issue-number }}
+          body: |
+            Deployment submitted, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}

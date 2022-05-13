@@ -1,0 +1,103 @@
+# Actions train a model on Azure Machine Learning
+name: deprecated-aml-train
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "The repository from which the slash command was dispatched"
+        required: false
+      comment-id:
+        description: "The comment-id of the slash command"
+        required: false
+      issue-number:
+        description: "The issue number from which the slash command was created"
+        required: false
+      az-workspace:
+        description: 'Azure workspace'
+        required: false
+        default: ""
+      az-resource-group:
+        description: "Azure resource group"
+        required: false
+        default: ""
+
+concurrency: train-refs/pull/${{ github.event.inputs.issue-number }}/head
+
+jobs:
+  train:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check Out Repository
+      id: checkout_repository
+      uses: actions/checkout@v3
+      
+    - name: Setup
+      uses: ./.github/actions/env_setup
+      with:
+        event_name: ${{ github.event_name }}
+        issue_number: ${{ github.event.inputs.issue-number }}
+        az_workspace: ${{ github.event.inputs.az-workspace }}
+        az_resource_group: ${{ github.event.inputs.az-resource-group }}
+        az_secret: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Connect or Create the Azure Machine Learning Workspace
+    - name: Connect/Create Azure Machine Learning Workspace
+      id: aml_workspace
+      uses: Azure/aml-workspace@v1
+      with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    # Connect or Create a Compute Target in Azure Machine Learning
+    - name: Connect/Create Azure Machine Learning Compute Target
+      id: aml_compute_training
+      uses: Azure/aml-compute@v1
+      with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Submit a training run to the Azure Machine Learning
+    - name: Submit training run
+      id: aml_run
+      uses: Azure/aml-run@v1
+      with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Create comment for training metrics
+      if: ${{ github.event.inputs.issue-numer }} != ''
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        issue-number: ${{ github.event.inputs.issue-number }}
+        body: |
+          "${{ steps.aml_run.outputs.run_metrics }}"
+
+    # Register model in Azure Machine Learning model registry
+    - name: Register model
+      id: aml_registermodel
+      uses: Azure/aml-registermodel@v1
+      with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          run_id:  ${{ steps.aml_run.outputs.run_id }}
+          experiment_name: ${{ steps.aml_run.outputs.experiment_name }}
+
+    - name: Create comment for model id
+      if: ${{ github.event.inputs.issue-numer }} != ''
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        issue-number: ${{ github.event.inputs.issue-number }}
+        body: |
+          The registered model id is : "${{ steps.aml_registermodel.outputs.model_id }}"
+
+    - name: Trigger deploy
+      if: ${{ github.event_name }} == 'push'
+      uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: aml-deploy
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        inputs: |
+          { "deploy-to": "${DEPLOY_ENV}", "model-name": "${MODEL_NAME}", "model-version": "${MODEL_VERSION}"}
+      env:
+        DEPLOY_ENV: "Production"
+        MODEL_NAME: ${{ steps.aml_registermodel.outputs.model_name }}
+        MODEL_VERSION: ${{ steps.aml_registermodel.outputs.model_version }}
