@@ -70,16 +70,17 @@ jobs:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
-           Submitting train run, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
+           Submitting train run, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }})
 
     - name: Submit training run
+      id: submit_train
       run: |
-        response=$(az ml run submit-script \
+        res=$(az ml run submit-script \
         --conda-dependencies ./code/train/environment.yaml \
         --experiment-name iris_experiment \
         --source-directory ./code/train \
         --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY} --model_name ${MODEL_NAME})
-        echo "TRAIN_RESPONSE=$response" >> $GITHUB_ENV
+        echo ::set-output name=response::$res
       env:
         KERNEL: ${{ github.event.inputs.kernel || 'linear' }}
         PENALTY: ${{ github.event.inputs.penalty || '0.1' }}
@@ -92,4 +93,4 @@ jobs:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
-          ${{ env.TRAIN_RESPONSE }}
+          ${{ steps.submit_train.outputs.response }}
