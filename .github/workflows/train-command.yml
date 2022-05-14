@@ -67,7 +67,7 @@ jobs:
       if: ${{ github.event.inputs.issue-number != '' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
-        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        token: ${{ github.token }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
            Submitting train run, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
@@ -83,12 +83,3 @@ jobs:
         KERNEL: ${{ github.event.inputs.kernel || 'linear' }}
         PENALTY: ${{ github.event.inputs.penalty || '0.1' }}
         MODEL_NAME: ${{ github.event.inputs.model-name || 'iris_model' }}
-
-#    - name: Trigger deploy
-#      if: ${{ github.event_name == 'push' }}
-#      uses: benc-uk/workflow-dispatch@v1
-#      with:
-#        workflow: aml-deploy
-#        token: ${{ secrets.REPO_ACCESS_TOKEN }}
-#        inputs: |
-#          { "deploy-to": "Production", "model-name": "iris_model"}
