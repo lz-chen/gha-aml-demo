@@ -62,7 +62,7 @@ jobs:
         issue_number: ${{ github.event.inputs.issue-number }}
         az_workspace: ${{ github.event.inputs.az-workspace || 'lc-onboarding' }}
         az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
-        az_secret: ${{ secrets.AZURE_CREDENTIALS }}
+        az_secret: ${{ secrets.AZURE_LOGIN }}
         
     - name: Create URL to the run output
       id: vars
