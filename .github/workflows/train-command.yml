@@ -49,11 +49,6 @@ jobs:
     - name: Check Out Repository
       id: checkout_repository
       uses: actions/checkout@v3
-      
-    - name: Azure login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_LOGIN }}
         
     - name: Setup
       uses: ./.github/actions/env_setup
@@ -72,19 +67,29 @@ jobs:
       if: ${{ github.event.inputs.issue-number != '' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
-        token: ${{ github.token }}
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
            Submitting train run, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
 
     - name: Submit training run
       run: |
-        az ml run submit-script \
+        response=$(az ml run submit-script \
         --conda-dependencies ./code/train/environment.yaml \
         --experiment-name iris_experiment \
         --source-directory ./code/train \
-        --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY} --model_name ${MODEL_NAME}
+        --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY} --model_name ${MODEL_NAME})
+        echo $response > response.txt
       env:
         KERNEL: ${{ github.event.inputs.kernel || 'linear' }}
         PENALTY: ${{ github.event.inputs.penalty || '0.1' }}
         MODEL_NAME: ${{ github.event.inputs.model-name || 'iris_model' }}
+
+    - name: Create comment for training response
+      if: ${{ github.event.inputs.issue-number != '' }}
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        issue-number: ${{ github.event.inputs.issue-number }}
+        body: |
+          $(cat response.txt)
