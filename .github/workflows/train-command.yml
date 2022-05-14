@@ -70,7 +70,7 @@ jobs:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
-           Submitting train run, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }})
+           Submitting train run, [Click here for more details](${{ steps.vars.outputs.run-url }})
 
     - name: Submit training run
       id: submit_train
