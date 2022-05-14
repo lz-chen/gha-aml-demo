@@ -67,7 +67,6 @@ jobs:
       if: ${{ github.event.inputs.issue-number != '' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
-        token: ${{ github.token }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
            Submitting train run, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
