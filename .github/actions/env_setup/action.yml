@@ -29,10 +29,6 @@ runs:
       with:
         ref: ${{ env.REF }}
 
-    - name: Azure CLI Action
-      run: az
-      shell: bash
-
     - name: Azure login
       uses: azure/login@v1
       with:
