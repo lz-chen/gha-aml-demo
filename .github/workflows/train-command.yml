@@ -49,11 +49,6 @@ jobs:
     - name: Check Out Repository
       id: checkout_repository
       uses: actions/checkout@v3
-      
-    - name: Azure login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_LOGIN }}
         
     - name: Setup
       uses: ./.github/actions/env_setup
