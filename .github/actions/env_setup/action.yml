@@ -30,7 +30,7 @@ runs:
         ref: ${{ env.REF }}
 
     - name: Azure CLI Action
-      uses: Azure/cli@v1
+      run: az
 
     - name: Azure login
       uses: azure/login@v1
