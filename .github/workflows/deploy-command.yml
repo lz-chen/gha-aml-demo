@@ -3,10 +3,6 @@ name: aml-deploy
 on:
   workflow_dispatch:
     inputs:
-      deploy-to:
-        description: "Environment to deploy to. Development|Staging|Production"
-        required: false
-        default: "Development"
       model-name:
         description: "Name of the model to deploy to"
         required: false
@@ -39,10 +35,7 @@ jobs:
   deploy:
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.event.inputs.deploy-to }}
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check Out Repository
         id: checkout_repository
         uses: actions/checkout@v3
@@ -56,6 +49,7 @@ jobs:
           az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
           az_secret: ${{ secrets.AZURE_LOGIN }}
 
+      # todo set default deploy to use dev_deploy.json
       - name: Create URL to the run output
         id: vars
         run: echo ::set-output name=run-url::https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
