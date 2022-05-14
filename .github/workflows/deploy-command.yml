@@ -3,10 +3,6 @@ name: aml-deploy
 on:
   workflow_dispatch:
     inputs:
-      deploy-to:
-        description: "Environment to deploy to. Development|Staging|Production"
-        required: false
-        default: "Development"
       model-name:
         description: "Name of the model to deploy to"
         required: false
@@ -39,10 +35,7 @@ jobs:
   deploy:
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.event.inputs.deploy-to }}
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check Out Repository
         id: checkout_repository
         uses: actions/checkout@v3
@@ -56,6 +49,7 @@ jobs:
           az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
           az_secret: ${{ secrets.AZURE_LOGIN }}
 
+      # todo set default deploy to use dev_deploy.json
       - name: Create URL to the run output
         id: vars
         run: echo ::set-output name=run-url::https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
@@ -67,21 +61,21 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
-            Deploying model, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
+            Deploying model, [Click here for more details](${{ steps.vars.outputs.run-url }}
 
 
       - name: Deploy model
+        id: deploy_model
         run: |
           if [ -z "${MODEL_VERSION}" ]; then
             MODEL_VERSION=$( az ml model list -l -n ${MODEL_NAME} | jq '.[0].version')
             echo "No model-version passed, setting it to the newest version ${MODEL_VERSION}"
           fi
-          response=$(az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
+          res=$(az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
            --inference-config-file ./config/inference_config.json \
            --deploy-config-file ./config/aks_deploy.json \
            --overwrite --compute-target aks-cluster-new)
-          echo "DEPLOY_RESPONSE=$response" >> $GITHUB_ENV
-
+          echo ::set-output name=response::$res
         env:
           MODEL_NAME:  ${{ github.event.inputs.model-name }}
           MODEL_VERSION: ${{ github.event.inputs.model-version }}
@@ -95,4 +89,5 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
-             ${{ env.DEPLOY_RESPONSE }}
+            ${{ steps.deploy_model.outputs.response }}
+

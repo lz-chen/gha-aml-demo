@@ -12,6 +12,7 @@ jobs:
   deployment-stg:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    environment: Staging
     steps:
       - uses: actions/checkout@v3
 
@@ -28,8 +29,6 @@ jobs:
         with:
           workflow: aml-deploy
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          inputs: |
-            { "deploy-to": "Staging"}
           wait-for-completion: true
           wait-for-completion-interval: 10s
 
@@ -37,6 +36,7 @@ jobs:
     needs: [deployment-stg]
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - uses: actions/checkout@v3
 
@@ -53,8 +53,6 @@ jobs:
         with:
           workflow: aml-deploy
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          inputs: |
-            { "deploy-to": "Production"}
           wait-for-completion: true
           wait-for-completion-interval: 10s
 
