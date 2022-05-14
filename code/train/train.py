@@ -119,12 +119,12 @@ def main(args):
     # precision for X_test
     precision = precision_score(svm_predictions, data["test"]["y"], average="weighted")
     print("Precision of SVM classifier on test set: {:.2f}".format(precision))
-    run.log("precision", precision)
+    # run.log("precision", precision)
 
     # recall for X_test
     recall = recall_score(svm_predictions, data["test"]["y"], average="weighted")
     print("Recall of SVM classifier on test set: {:.2f}".format(recall))
-    run.log("recall", recall)
+    # run.log("recall", recall)
 
     # f1-score for X_test
     f1 = f1_score(svm_predictions, data["test"]["y"], average="weighted")
