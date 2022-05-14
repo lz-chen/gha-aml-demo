@@ -25,6 +25,7 @@ jobs:
 
       - name: Cache conda
         uses: actions/cache@v2
+        id: cache-conda
         env:
           CACHE_NUMBER: 0
         with:
@@ -32,8 +33,10 @@ jobs:
           key:
             ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
             hashFiles('code/train/environment.yaml') }}
-
-      - uses: conda-incubator/setup-miniconda@v2
+      
+      - name: Install conda dependencies
+        uses: conda-incubator/setup-miniconda@v2
+        if: steps.cache-conda.outputs.cache-hit != 'true'
         with:
           activate-environment: conda-env
           channel-priority: strict
