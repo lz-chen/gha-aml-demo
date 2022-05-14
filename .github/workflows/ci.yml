@@ -33,7 +33,7 @@ jobs:
           key:
             ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
             hashFiles('code/train/environment.yaml') }}
-      
+
       - name: Install conda dependencies
         uses: conda-incubator/setup-miniconda@v2
         if: steps.cache-conda.outputs.cache-hit != 'true'
