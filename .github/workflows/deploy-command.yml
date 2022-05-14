@@ -76,10 +76,12 @@ jobs:
             MODEL_VERSION=$( az ml model list -l -n ${MODEL_NAME} | jq '.[0].version')
             echo "No model-version passed, setting it to the newest version ${MODEL_VERSION}"
           fi
-          az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
+          response=$(az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
            --inference-config-file ./config/inference_config.json \
            --deploy-config-file ./config/aks_deploy.json \
-           --overwrite --compute-target aks-cluster-new
+           --overwrite --compute-target aks-cluster-new)
+          echo "DEPLOY_RESPONSE=$response" >> $GITHUB_ENV
+
         env:
           MODEL_NAME:  ${{ github.event.inputs.model-name }}
           MODEL_VERSION: ${{ github.event.inputs.model-version }}
@@ -93,4 +95,4 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
-            Deployment submitted, [Click here to see the deploy run output](${{ steps.vars.outputs.run-url }}
+             ${{ env.DEPLOY_RESPONSE }}
