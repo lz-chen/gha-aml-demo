@@ -79,7 +79,7 @@ jobs:
         --experiment-name iris_experiment \
         --source-directory ./code/train \
         --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY} --model_name ${MODEL_NAME})
-        echo $response > response.txt
+        echo "TRAIN_RESPONSE=$response" >> $GITHUB_ENV
       env:
         KERNEL: ${{ github.event.inputs.kernel || 'linear' }}
         PENALTY: ${{ github.event.inputs.penalty || '0.1' }}
@@ -92,4 +92,4 @@ jobs:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
-          $(cat response.txt)
+          ${{ env.TRAIN_RESPONSE }}
