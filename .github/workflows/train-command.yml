@@ -53,7 +53,7 @@ jobs:
     - name: Azure login
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{ secrets.AZURE_LOGIN }}
         
     - name: Setup
       uses: ./.github/actions/env_setup
