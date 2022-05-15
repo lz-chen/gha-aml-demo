@@ -38,15 +38,6 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
 
-    - name: Setting env var for train parameter file
-      run: |
-        param_file=${{ secrets.TRAIN_PARAM_FILE }}
-        if [ ! -z "${{ github.event.inputs.param-file }}" ]; then      
-            param_file=${{ github.event.inputs.param-file }}
-            echo "using ${{ github.event.inputs.param-file }} from input"
-        fi
-        echo "PARAM_FILE=$param_file" >> $GITHUB_ENV
-
     - name: Create URL to the run output
       id: vars
       run: echo ::set-output name=run-url::https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
@@ -58,7 +49,16 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
-           Submitting train run, [Click here for more details](${{ steps.vars.outputs.run-url }})
+          Submitting train run, [Click here for more details](${{ steps.vars.outputs.run-url }})
+
+    - name: Setting env var for train parameter file
+      run: |
+        param_file=${{ secrets.TRAIN_PARAM_FILE }}
+        if [ ! -z "${{ github.event.inputs.param-file }}" ]; then      
+            param_file=${{ github.event.inputs.param-file }}
+            echo "using ${{ github.event.inputs.param-file }} from input"
+        fi
+        echo "PARAM_FILE=$param_file" >> $GITHUB_ENV
 
     - name: Submit training run
       id: submit_train
