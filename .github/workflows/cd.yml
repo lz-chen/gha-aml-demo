@@ -6,8 +6,6 @@ on:
     paths:
       - code/**
 
-concurrency: deployment-${{ github.ref }}
-
 jobs:
   deployment-stg:
     timeout-minutes: 30

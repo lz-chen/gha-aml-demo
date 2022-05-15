@@ -1,4 +1,4 @@
-## Exmaple usage
+## Example usage
 Open a PR and comment following to submit training script:
 
 ```
