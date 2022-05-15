@@ -40,11 +40,6 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
 
-    - name: Dump Job context
-      env:
-        JOB_CONTEXT: ${{ toJson(jobs) }}
-      run: echo "$JOB_CONTEXT"
-
     - name: Setting env var for train parameter file
       run: |
         param_file=${{ secrets.TRAIN_PARAM_FILE }}
