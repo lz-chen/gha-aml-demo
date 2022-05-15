@@ -68,7 +68,7 @@ jobs:
       - name: Deploy model
         id: deploy_model
         run: |
-          if [ -z '${MODEL_VERSION}' ]; then
+          if [ -z "${MODEL_VERSION}" ]; then
             MODEL_VERSION=$( az ml model list -l -n ${MODEL_NAME:='iris_model'} | jq '.[0].version')
             echo 'No model-version passed, setting it to the newest version ${MODEL_VERSION}'
           fi
