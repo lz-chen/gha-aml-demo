@@ -58,7 +58,7 @@ jobs:
         if: ${{ github.event.inputs.issue-number != '' }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
             Deploying model, [Click here for more details](${{ steps.vars.outputs.run-url }})
@@ -84,7 +84,7 @@ jobs:
         if: ${{ github.event.inputs.issue-number != '' }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
             ${{ steps.deploy_model.outputs.response }}
