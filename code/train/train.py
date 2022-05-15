@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sklearn
 from azureml.core import Model, Run
+from config.constants import MODEL_NAME
 from sklearn import datasets
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from config.constants import MODEL_NAME
 
 run = Run.get_context()
 
@@ -96,8 +96,10 @@ def main(params):
     os.makedirs("outputs", exist_ok=True)
 
     # Log arguments
-    run.log("Kernel type", np.str(params.kernel))
-    run.log("Penalty", np.float(params.penalty))
+    kernel_type = params["kernel"]
+    penalty = params["penalty"]
+    run.log("Kernel type", np.str(kernel_type))
+    run.log("Penalty", np.float(penalty))
 
     # Load iris dataset
     X, y = datasets.load_iris(return_X_y=True)
@@ -109,7 +111,7 @@ def main(params):
     data = {"train": {"X": x_train, "y": y_train}, "test": {"X": x_test, "y": y_test}}
 
     # train a SVM classifier
-    svm_model = SVC(kernel=params.kernel, C=params.penalty, gamma="scale").fit(
+    svm_model = SVC(kernel=kernel_type, C=penalty, gamma="scale").fit(
         data["train"]["X"], data["train"]["y"]
     )
     svm_predictions = svm_model.predict(data["test"]["X"])
@@ -164,16 +166,6 @@ def parse_args():
         default="dev_params.json",
         help="Json file that contains training parameters",
     )
-    # parser.add_argument(
-    #     "--kernel",
-    #     type=str,
-    #     default=params.kernel,
-    #     help="Kernel type to be used in the algorithm",
-    # )
-    # parser.add_argument(
-    #     "--penalty", type=float, default=params.penalty,
-    #     help="Penalty parameter of the error term"
-    # )
     args = parser.parse_args()
     train_dir = Path(__file__).parent
     param_file = train_dir.joinpath("config").joinpath(args.param_file)
