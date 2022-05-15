@@ -171,17 +171,18 @@ def parse_args():
     #     help="Kernel type to be used in the algorithm",
     # )
     # parser.add_argument(
-    #     "--penalty", type=float, default=params.penalty, help="Penalty parameter of the error term"
+    #     "--penalty", type=float, default=params.penalty,
+    #     help="Penalty parameter of the error term"
     # )
     args = parser.parse_args()
     train_dir = Path(__file__).parent
     param_file = train_dir.joinpath("config").joinpath(args.param_file)
     with param_file.open() as f:
         params = json.load(f)
-
+    print(params)
     return params
 
 
 if __name__ == "__main__":
     params = parse_args()
-    main(args=params)
+    main(params=params)
