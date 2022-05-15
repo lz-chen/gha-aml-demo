@@ -23,7 +23,6 @@ on:
       param-file:
         description: "Parameter file for training, resides in code/train/config directory"
         required: false
-        default: "dev_params.json"
 
 concurrency: train-refs/pull/${{ github.event.inputs.issue-number }}/head
 
@@ -35,7 +34,7 @@ jobs:
     - name: Check Out Repository
       id: checkout_repository
       uses: actions/checkout@v3
-        
+
     - name: Setup
       uses: ./.github/actions/env_setup
       with:
@@ -52,21 +51,21 @@ jobs:
 
     - name: Setting env var for train parameter file
       run: |
-        deploy_env=${{ github.environment.name }}
+        param_file="dev_params.json"
+        deploy_env=${{ job.train.environment.name }}
         case $deploy_env in
           Production | Staging)
-            param_file="prd_params.json"
-            echo "${deploy_env}, using prd_params.json"
+            param_file="prd_params.json" && echo "$deploy_env env, using prd_params.json"
             ;;
-          *)
-            param_file="dev_params.json"
-            echo "${deploy_env}, using dev_params.json"
+          Development)
+            param_file="dev_params.json" && echo "$deploy_env env, using dev_params.json"
             ;;
+        esac
         if [ ! -z ${{ github.event.inputs.param-file }} ]; then      
             param_file=${{ github.event.inputs.param-file }}
-            echo "${deploy_env}, using ${{ github.event.inputs.param-file }}"
+            echo "using ${{ github.event.inputs.param-file }} from input"
         fi
-        export "PARAM_FILE=$param_file" >> $GITHUB_ENV
+        echo "PARAM_FILE=$param_file" >> $GITHUB_ENV
 
     - name: Create URL to the run output
       id: vars

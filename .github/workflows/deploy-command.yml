@@ -3,26 +3,34 @@ name: aml-deploy
 on:
   workflow_dispatch:
     inputs:
+      model-name:
+        description: 'Name of the model to deploy to'
+        required: true
+        default: 'iris_model'
       model-version:
-        description: "Version of the model to deploy to"
+        description: 'Version of the model to deploy to'
         required: false
         default: ''
+      service-name:
+        description: 'Deploy service name'
+        required: true
+        default: 'irisservice'
       az-workspace:
         description: 'Azure workspace'
         required: false
-        default: "lc-onboarding"
+        default: 'lc-onboarding'
       az-resource-group:
-        description: "Azure resource group"
+        description: 'Azure resource group'
         required: false
-        default: "lc-test"
+        default: 'lc-test'
       repository:
-        description: "The repository from which the slash command was dispatched"
+        description: 'The repository from which the slash command was dispatched'
         required: false
       comment-id:
-        description: "The comment-id of the slash command"
+        description: 'The comment-id of the slash command'
         required: false
       issue-number:
-        description: "The issue number from which the slash command was created"
+        description: 'The issue number from which the slash command was created'
         required: false
 
 concurrency: deploy-refs/pull/${{ github.event.inputs.issue-number }}/head
@@ -45,12 +53,30 @@ jobs:
           az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
           az_secret: ${{ secrets.AZURE_LOGIN }}
 
+      - name: Setting env var for train parameter file
+        run: |
+          deploy_env=${{ job.train.environment.name }}
+          case $deploy_env in
+            Production | Staging)
+              inf_config=./code/deploy/config/prd_inference_config.json
+              deploy_config=./code/deploy/config/prd_aks_deploy.json
+              echo "$deploy_env env, using ${inf_config} and ${deploy_config}"
+              ;;
+            *)
+              inf_config=./code/deploy/config/dev_inference_config.json
+              deploy_config=./code/deploy/config/dev_aks_deploy.json
+              echo "$deploy_env env, using ${inf_config} and ${deploy_config}"
+              ;;
+          esac
+          echo "INFERENCE_CONFIG=$inf_config" >> $GITHUB_ENV        
+          echo "DEPLOY_CONFIG=$deploy_config" >> $GITHUB_ENV
+
       - name: Create URL to the run output
         id: vars
         run: echo ::set-output name=run-url::https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
 
       - name: Create comment
-        if: ${{ github.event.inputs.issue-numer != '' }}
+        if: ${{ github.event.inputs.issue-number != '' }}
         uses: peter-evans/create-or-update-comment@v1
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
@@ -58,24 +84,24 @@ jobs:
           body: |
             Deploying model, [Click here for more details](${{ steps.vars.outputs.run-url }}
 
-
       - name: Deploy model
         id: deploy_model
         run: |
-          if [ -z "${MODEL_VERSION}" ]; then
+          if [ -z '${MODEL_VERSION}' ]; then
             MODEL_VERSION=$( az ml model list -l -n ${MODEL_NAME} | jq '.[0].version')
-            echo "No model-version passed, setting it to the newest version ${MODEL_VERSION}"
+            echo 'No model-version passed, setting it to the newest version ${MODEL_VERSION}'
           fi
-          res=$(az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
-           --inference-config-file ./code/deploy/config/inference_config.json \
-           --deploy-config-file ./code/deploy/config/aks_deploy.json --overwrite)
+          res=$(az ml model deploy --name $SERVICE_NAME --model ${MODEL_NAME}:${MODEL_VERSION} \
+           --inference-config-file ${{ env.INFERENCE_CONFIG }} \
+           --deploy-config-file ${{ env.DEPLOY_CONFIG }} --overwrite)
           echo ::set-output name=response::$res
         env:
           MODEL_NAME:  ${{ github.event.inputs.model-name }}
           MODEL_VERSION: ${{ github.event.inputs.model-version }}
+          SERVICE_NAME: ${{ github.event.inputs.service-name }}
 
       - name: Create comment
-        if: ${{ github.event.inputs.issue-numer != '' }}
+        if: ${{ github.event.inputs.issue-number != '' }}
         uses: peter-evans/create-or-update-comment@v1
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
