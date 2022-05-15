@@ -77,9 +77,9 @@ jobs:
            --deploy-config-file ${{ env.DEPLOY_CONFIG }} --overwrite)
           echo ::set-output name=response::$res
         env:
-          MODEL_NAME:  ${{ github.event.inputs.model-name }}
+          MODEL_NAME:  ${{ github.event.inputs.model-name | 'iris_model' }}
           MODEL_VERSION: ${{ github.event.inputs.model-version }}
-          SERVICE_NAME: ${{ github.event.inputs.service-name }}
+          SERVICE_NAME: ${{ github.event.inputs.service-name | 'iris-service' }}
 
       - name: Create comment
         if: ${{ github.event.inputs.issue-number != '' }}
