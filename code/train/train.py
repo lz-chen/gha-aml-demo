@@ -13,7 +13,7 @@ from sklearn import datasets
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from .constants import MODEL_NAME
+from config.constants import MODEL_NAME
 
 run = Run.get_context()
 
@@ -91,13 +91,13 @@ def log_confusion_matrix(cm, labels):
     )
 
 
-def main(args):
+def main(params):
     # create the outputs folder
     os.makedirs("outputs", exist_ok=True)
 
     # Log arguments
-    run.log("Kernel type", np.str(args.kernel))
-    run.log("Penalty", np.float(args.penalty))
+    run.log("Kernel type", np.str(params.kernel))
+    run.log("Penalty", np.float(params.penalty))
 
     # Load iris dataset
     X, y = datasets.load_iris(return_X_y=True)
@@ -109,7 +109,7 @@ def main(args):
     data = {"train": {"X": x_train, "y": y_train}, "test": {"X": x_test, "y": y_test}}
 
     # train a SVM classifier
-    svm_model = SVC(kernel=args.kernel, C=args.penalty, gamma="scale").fit(
+    svm_model = SVC(kernel=params.kernel, C=params.penalty, gamma="scale").fit(
         data["train"]["X"], data["train"]["y"]
     )
     svm_predictions = svm_model.predict(data["test"]["X"])
@@ -157,26 +157,31 @@ def main(args):
 
 
 def parse_args():
-    train_dir = Path(__file__).parent
-    DEFAULT_PARAM_FNAME = "dev_params.json"
-    PARAM_FNAME = os.getenv("PARAM_FILE", DEFAULT_PARAM_FNAME)
-    param_file = train_dir.joinpath(PARAM_FNAME)
-    with param_file.open() as f:
-        params = json.load(f)
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--kernel",
+        "--param-file",
         type=str,
-        default=params.kernel,
-        help="Kernel type to be used in the algorithm",
+        default="dev_params.json",
+        help="Json file that contains training parameters",
     )
-    parser.add_argument(
-        "--penalty", type=float, default=params.penalty, help="Penalty parameter of the error term"
-    )
+    # parser.add_argument(
+    #     "--kernel",
+    #     type=str,
+    #     default=params.kernel,
+    #     help="Kernel type to be used in the algorithm",
+    # )
+    # parser.add_argument(
+    #     "--penalty", type=float, default=params.penalty, help="Penalty parameter of the error term"
+    # )
     args = parser.parse_args()
-    return args
+    train_dir = Path(__file__).parent
+    param_file = train_dir.joinpath("config").joinpath(args.param_file)
+    with param_file.open() as f:
+        params = json.load(f)
+
+    return params
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args=args)
+    params = parse_args()
+    main(args=params)
