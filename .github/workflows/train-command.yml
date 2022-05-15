@@ -47,16 +47,7 @@ jobs:
 
     - name: Setting env var for train parameter file
       run: |
-        param_file="dev_params.json"
-        deploy_env=${{ jobs.train.environment.name }}
-        case $deploy_env in
-          Production | Staging)
-            param_file="prd_params.json" && echo "$deploy_env env, using prd_params.json"
-            ;;
-          Development)
-            param_file="dev_params.json" && echo "$deploy_env env, using dev_params.json"
-            ;;
-        esac
+        param_file=${{ secrets.TRAIN_PARAM_FILE }}
         if [ ! -z ${{ github.event.inputs.param-file }} ]; then      
             param_file=${{ github.event.inputs.param-file }}
             echo "using ${{ github.event.inputs.param-file }} from input"

@@ -45,21 +45,10 @@ jobs:
           az_resource_group: ${{ secrets.AZURE_RESOURCE_GROUP }}
           az_secret: ${{ secrets.AZURE_LOGIN }}
 
-      - name: Setting env var for train parameter file
+      - name: Setting env var for deploy and inference config
         run: |
-          deploy_env=${{ job.train.environment.name }}
-          case $deploy_env in
-            Production | Staging)
-              inf_config=./code/deploy/config/prd_inference_config.json
-              deploy_config=./code/deploy/config/prd_aci_deploy.json
-              echo "$deploy_env env, using ${inf_config} and ${deploy_config}"
-              ;;
-            *)
-              inf_config=./code/deploy/config/dev_inference_config.json
-              deploy_config=./code/deploy/config/dev_aci_config.json
-              echo "$deploy_env env, using ${inf_config} and ${deploy_config}"
-              ;;
-          esac
+          inf_config=${{ secrets.INFERENCE_CONFIG_FILE }}
+          deploy_config=${{ secrets.DEPLOY_CONFIG_FILE }}
           echo "INFERENCE_CONFIG=$inf_config" >> $GITHUB_ENV        
           echo "DEPLOY_CONFIG=$deploy_config" >> $GITHUB_ENV
 
