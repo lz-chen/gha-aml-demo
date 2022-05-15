@@ -16,8 +16,6 @@ on:
         description: "Parameter file for training, resides in code/train/config directory"
         required: false
 
-concurrency: train-refs/pull/${{ github.event.inputs.issue-number }}/head
-
 jobs:
   train:
     timeout-minutes: 20
@@ -57,7 +55,7 @@ jobs:
       if: ${{ github.event.inputs.issue-number != '' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
-        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
            Submitting train run, [Click here for more details](${{ steps.vars.outputs.run-url }})
@@ -76,7 +74,7 @@ jobs:
       if: ${{ github.event.inputs.issue-number != '' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
-        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         issue-number: ${{ github.event.inputs.issue-number }}
         body: |
           ${{ steps.submit_train.outputs.response }}

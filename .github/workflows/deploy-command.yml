@@ -25,8 +25,6 @@ on:
         description: 'The issue number from which the slash command was created'
         required: false
 
-concurrency: deploy-refs/pull/${{ github.event.inputs.issue-number }}/head
-
 jobs:
   deploy:
     timeout-minutes: 30
@@ -60,10 +58,10 @@ jobs:
         if: ${{ github.event.inputs.issue-number != '' }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
-            Deploying model, [Click here for more details](${{ steps.vars.outputs.run-url }}
+            Deploying model, [Click here for more details](${{ steps.vars.outputs.run-url }})
 
       - name: Deploy model
         id: deploy_model
@@ -86,7 +84,7 @@ jobs:
         if: ${{ github.event.inputs.issue-number != '' }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number:  ${{ github.event.inputs.issue-number }}
           body: |
             ${{ steps.deploy_model.outputs.response }}
