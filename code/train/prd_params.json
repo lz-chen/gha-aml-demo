@@ -1,0 +1,4 @@
+{
+  "kernel": "rbf",
+  "penalty": 0.1
+}

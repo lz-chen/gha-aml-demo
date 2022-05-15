@@ -1,6 +1,8 @@
 import argparse
 import itertools
+import json
 import os
+from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
@@ -11,6 +13,7 @@ from sklearn import datasets
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from .constants import MODEL_NAME
 
 run = Run.get_context()
 
@@ -140,12 +143,12 @@ def main(args):
     # files saved in the "outputs" folder are automatically uploaded into run history
     ws_model_path = os.path.join("outputs", "model.pkl")
     joblib.dump(svm_model, ws_model_path)
-    run.log("Model Name", np.str(args.model_name))
+    run.log("Model Name", np.str(MODEL_NAME))
 
     run.upload_file(ws_model_path, ws_model_path)
 
     run.register_model(
-        model_name=args.model_name,
+        model_name=MODEL_NAME,
         model_path=ws_model_path,  # run outputs path
         description="A classification model for iris dataset",
         model_framework=Model.Framework.SCIKITLEARN,
@@ -154,18 +157,21 @@ def main(args):
 
 
 def parse_args():
+    train_dir = Path(__file__).parent
+    DEFAULT_PARAM_FNAME = "dev_params.json"
+    PARAM_FNAME = os.getenv("PARAM_FILE", DEFAULT_PARAM_FNAME)
+    param_file = train_dir.joinpath(PARAM_FNAME)
+    with param_file.open() as f:
+        params = json.load(f)
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--kernel",
         type=str,
-        default="rbf",
+        default=params.kernel,
         help="Kernel type to be used in the algorithm",
     )
     parser.add_argument(
-        "--penalty", type=float, default=1.0, help="Penalty parameter of the error term"
-    )
-    parser.add_argument(
-        "--model_name", type=str, default="iris_model", help="Name of the model file"
+        "--penalty", type=float, default=params.penalty, help="Penalty parameter of the error term"
     )
     args = parser.parse_args()
     return args

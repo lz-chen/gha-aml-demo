@@ -7,7 +7,7 @@ from inference_schema.parameter_types.standard_py_parameter_type import (
     StandardPythonParameterType,
 )
 from inference_schema.schema_decorators import input_schema, output_schema
-
+from .constants import MODEL_NAME
 
 # The init() method is called once, when the web service starts up.
 # Typically you would deserialize the model file, as shown here using joblib,
@@ -17,7 +17,7 @@ def init():
     global inputs_dc, prediction_dc
     # The AZUREML_MODEL_DIR environment variable indicates
     # a directory containing the model file you registered.
-    model_path = Model.get_model_path(model_name="iris_model")
+    model_path = Model.get_model_path(model_name=MODEL_NAME)
     model = joblib.load(model_path)
     inputs_dc = ModelDataCollector(
         "sample-model",
