@@ -51,7 +51,7 @@ jobs:
 
     - name: Setting env var for train parameter file
       run: |
-        deploy_env=${{ jobs.train.environment.name }}
+        deploy_env=${{ job.train.environment.name }}
         case $deploy_env in
           Production | Staging)
             param_file="prd_params.json" && echo "$deploy_env , using prd_params.json"
