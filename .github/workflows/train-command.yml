@@ -42,13 +42,13 @@ jobs:
 
     - name: Dump Job context
       env:
-        JOB_CONTEXT: ${{ toJson(job) }}
+        JOB_CONTEXT: ${{ toJson(jobs) }}
       run: echo "$JOB_CONTEXT"
 
     - name: Setting env var for train parameter file
       run: |
         param_file="dev_params.json"
-        deploy_env=${{ job.train.environment.name }}
+        deploy_env=${{ jobs.train.environment.name }}
         case $deploy_env in
           Production | Staging)
             param_file="prd_params.json" && echo "$deploy_env env, using prd_params.json"
