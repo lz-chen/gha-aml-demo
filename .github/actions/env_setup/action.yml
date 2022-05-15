@@ -8,7 +8,7 @@ inputs:
     description: "Issue number that triggered the workflow"
     required: false
   az_secret:
-    description: "Azure credentials (secrets.AZURE_CREDENTIALS cannot be properly parsed here)"
+    description: "Azure credentials (secrets.AZURE_LOGIN cannot be properly parsed here)"
     required: true
 
 runs:
@@ -28,10 +28,6 @@ runs:
       uses: actions/checkout@v3
       with:
         ref: ${{ env.REF }}
-
-    - name: Azure CLI Action
-      run: az
-      shell: bash
 
     - name: Azure login
       uses: azure/login@v1

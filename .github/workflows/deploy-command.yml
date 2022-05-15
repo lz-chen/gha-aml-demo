@@ -3,10 +3,6 @@ name: aml-deploy
 on:
   workflow_dispatch:
     inputs:
-      model-name:
-        description: "Name of the model to deploy to"
-        required: false
-        default: "iris_model"
       model-version:
         description: "Version of the model to deploy to"
         required: false
@@ -72,15 +68,12 @@ jobs:
             echo "No model-version passed, setting it to the newest version ${MODEL_VERSION}"
           fi
           res=$(az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
-           --inference-config-file ./config/inference_config.json \
-           --deploy-config-file ./config/aks_deploy.json \
-           --overwrite --compute-target aks-cluster-new)
+           --inference-config-file ./code/deploy/config/inference_config.json \
+           --deploy-config-file ./code/deploy/config/aks_deploy.json --overwrite)
           echo ::set-output name=response::$res
         env:
           MODEL_NAME:  ${{ github.event.inputs.model-name }}
           MODEL_VERSION: ${{ github.event.inputs.model-version }}
-          WORKSPACE: ${{ github.event.inputs.az-workspace }}
-          GROUP: ${{ github.event.inputs.az-resource-group }}
 
       - name: Create comment
         if: ${{ github.event.inputs.issue-numer != '' }}

@@ -1,5 +1,6 @@
 {
     "computeType": "aks",
+    "compute_target_name": "aks-cluster-new",
     "autoScaler":
     {
         "autoscaleEnabled": true,

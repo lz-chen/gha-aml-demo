@@ -1,12 +1,15 @@
 import argparse
 import itertools
+import json
 import os
+from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn
 from azureml.core import Model, Run
+from config.constants import MODEL_NAME
 from sklearn import datasets
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
@@ -88,13 +91,15 @@ def log_confusion_matrix(cm, labels):
     )
 
 
-def main(args):
+def main(params):
     # create the outputs folder
     os.makedirs("outputs", exist_ok=True)
 
     # Log arguments
-    run.log("Kernel type", np.str(args.kernel))
-    run.log("Penalty", np.float(args.penalty))
+    kernel_type = params["kernel"]
+    penalty = params["penalty"]
+    run.log("Kernel type", np.str(kernel_type))
+    run.log("Penalty", np.float(penalty))
 
     # Load iris dataset
     X, y = datasets.load_iris(return_X_y=True)
@@ -106,7 +111,7 @@ def main(args):
     data = {"train": {"X": x_train, "y": y_train}, "test": {"X": x_test, "y": y_test}}
 
     # train a SVM classifier
-    svm_model = SVC(kernel=args.kernel, C=args.penalty, gamma="scale").fit(
+    svm_model = SVC(kernel=kernel_type, C=penalty, gamma="scale").fit(
         data["train"]["X"], data["train"]["y"]
     )
     svm_predictions = svm_model.predict(data["test"]["X"])
@@ -119,12 +124,12 @@ def main(args):
     # precision for X_test
     precision = precision_score(svm_predictions, data["test"]["y"], average="weighted")
     print("Precision of SVM classifier on test set: {:.2f}".format(precision))
-    # run.log("precision", precision)
+    run.log("precision", precision)
 
     # recall for X_test
     recall = recall_score(svm_predictions, data["test"]["y"], average="weighted")
     print("Recall of SVM classifier on test set: {:.2f}".format(recall))
-    # run.log("recall", recall)
+    run.log("recall", recall)
 
     # f1-score for X_test
     f1 = f1_score(svm_predictions, data["test"]["y"], average="weighted")
@@ -140,12 +145,12 @@ def main(args):
     # files saved in the "outputs" folder are automatically uploaded into run history
     ws_model_path = os.path.join("outputs", "model.pkl")
     joblib.dump(svm_model, ws_model_path)
-    run.log("Model Name", np.str(args.model_name))
+    run.log("Model Name", np.str(MODEL_NAME))
 
     run.upload_file(ws_model_path, ws_model_path)
 
     run.register_model(
-        model_name=args.model_name,
+        model_name=MODEL_NAME,
         model_path=ws_model_path,  # run outputs path
         description="A classification model for iris dataset",
         model_framework=Model.Framework.SCIKITLEARN,
@@ -156,21 +161,20 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--kernel",
+        "--param-file",
         type=str,
-        default="rbf",
-        help="Kernel type to be used in the algorithm",
-    )
-    parser.add_argument(
-        "--penalty", type=float, default=1.0, help="Penalty parameter of the error term"
-    )
-    parser.add_argument(
-        "--model_name", type=str, default="iris_model", help="Name of the model file"
+        default="dev_params.json",
+        help="Json file that contains training parameters",
     )
     args = parser.parse_args()
-    return args
+    train_dir = Path(__file__).parent
+    param_file = train_dir.joinpath("config").joinpath(args.param_file)
+    with param_file.open() as f:
+        params = json.load(f)
+    print(params)
+    return params
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args=args)
+    params = parse_args()
+    main(params=params)

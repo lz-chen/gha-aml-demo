@@ -2,6 +2,7 @@ import joblib
 import numpy as np
 from azureml.core import Model
 from azureml.monitoring import ModelDataCollector
+from config.constants import MODEL_NAME
 from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType
 from inference_schema.parameter_types.standard_py_parameter_type import (
     StandardPythonParameterType,
@@ -17,7 +18,7 @@ def init():
     global inputs_dc, prediction_dc
     # The AZUREML_MODEL_DIR environment variable indicates
     # a directory containing the model file you registered.
-    model_path = Model.get_model_path(model_name="iris_model")
+    model_path = Model.get_model_path(model_name=MODEL_NAME)
     model = joblib.load(model_path)
     inputs_dc = ModelDataCollector(
         "sample-model",
