@@ -12,14 +12,6 @@ on:
       issue-number:
         description: "The issue number from which the slash command was created"
         required: false
-      az-workspace:
-        description: 'Azure workspace'
-        required: false
-        default: "lc-onboarding"
-      az-resource-group:
-        description: "Azure resource group"
-        required: false
-        default: "lc-test"
       param-file:
         description: "Parameter file for training, resides in code/train/config directory"
         required: false
@@ -39,15 +31,19 @@ jobs:
       uses: ./.github/actions/env_setup
       with:
         event_name: ${{ github.event_name }}
-        issue_number: ${{ github.event.inputs.issue-number }}
-        az_workspace: ${{ github.event.inputs.az-workspace || 'lc-onboarding' }}
-        az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
+        az_workspace: ${{ secrets.AZURE_WORKSPACE }}
+        az_resource_group: ${{ secrets.AZURE_RESOURCE_GROUP }}
         az_secret: ${{ secrets.AZURE_LOGIN }}
 
     - name: Dump GitHub context
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
+
+    - name: Dump Job context
+      env:
+        JOB_CONTEXT: ${{ toJson(job) }}
+      run: echo "$JOB_CONTEXT"
 
     - name: Setting env var for train parameter file
       run: |
