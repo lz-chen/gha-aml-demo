@@ -20,20 +20,10 @@ on:
         description: "Azure resource group"
         required: false
         default: "lc-test"
-      kernel:
-        description: "Kernel type for SVM model"
+      param-file:
+        description: "Parameter file for training, resides in code/train/config directory"
         required: false
-        type: choice
-        default: "linear"
-        options:
-          - "linear"
-          - "rbf"
-          - "sigmoid"
-          - "poly"
-      penalty:
-        description: "Penalty for SVM model"
-        required: false
-        default: "0.1"
+        default: "dev_params.json"
 
 concurrency: train-refs/pull/${{ github.event.inputs.issue-number }}/head
 
@@ -55,6 +45,11 @@ jobs:
         az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
         az_secret: ${{ secrets.AZURE_LOGIN }}
 
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT”
+
     - name: Setting env var for train parameter file
       run: |
         deploy_env=${{ github.environment.name }}
@@ -67,6 +62,10 @@ jobs:
             param_file="dev_params.json"
             echo "${deploy_env}, using dev_params.json"
             ;;
+        if [ ! -z ${{ github.event.inputs.param-file }} ]; then      
+            param_file=${{ github.event.inputs.param-file }}
+            echo "${deploy_env}, using ${{ github.event.inputs.param-file }}"
+        fi
         export "PARAM_FILE=$param_file" >> $GITHUB_ENV
 
     - name: Create URL to the run output
@@ -85,17 +84,12 @@ jobs:
     - name: Submit training run
       id: submit_train
       run: |
-        echo "$PARAM_FILE"
         res=$(az ml run submit-script \
         --conda-dependencies ./code/train/environment.yaml \
         --experiment-name iris_experiment \
         --source-directory ./code/train \
-        --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY})
+        --ct cpu-cluster train.py --param-file ${{ env.PARAM_FILE }})
         echo ::set-output name=response::$res
-      env:
-        KERNEL: ${{ github.event.inputs.kernel || 'linear' }}
-        PENALTY: ${{ github.event.inputs.penalty || '0.1' }}
-        MODEL_NAME: ${{ github.event.inputs.model-name || 'iris_model' }}
 
     - name: Create comment for training response
       if: ${{ github.event.inputs.issue-number != '' }}
