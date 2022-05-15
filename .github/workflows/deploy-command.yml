@@ -73,8 +73,7 @@ jobs:
           fi
           res=$(az ml model deploy --name irisservice --model ${MODEL_NAME}:${MODEL_VERSION} \
            --inference-config-file ./config/inference_config.json \
-           --deploy-config-file ./config/aks_deploy.json \
-           --overwrite --compute-target aks-cluster-new)
+           --deploy-config-file ./config/aks_deploy.json --overwrite)
           echo ::set-output name=response::$res
         env:
           MODEL_NAME:  ${{ github.event.inputs.model-name }}
