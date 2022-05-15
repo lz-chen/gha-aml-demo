@@ -1,4 +1,4 @@
 {
-  "kernel": "rbf",
+  "kernel": "linear",
   "penalty": 0.1
 }
