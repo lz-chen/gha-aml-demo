@@ -72,14 +72,15 @@ jobs:
             MODEL_VERSION=$( az ml model list -l -n ${MODEL_NAME} | jq '.[0].version')
             echo 'No model-version passed, setting it to the newest version ${MODEL_VERSION}'
           fi
-          res=$(az ml model deploy --name $SERVICE_NAME --model ${MODEL_NAME}:${MODEL_VERSION} \
+          res=$(az ml model deploy --name ${SERVICE_NAME:='iris-service'} \
+           --model ${MODEL_NAME:='iris_model'}:${MODEL_VERSION} \
            --inference-config-file ${{ env.INFERENCE_CONFIG }} \
            --deploy-config-file ${{ env.DEPLOY_CONFIG }} --overwrite)
           echo ::set-output name=response::$res
         env:
-          MODEL_NAME:  ${{ github.event.inputs.model-name || 'iris_model' }}
+          MODEL_NAME:  ${{ github.event.inputs.model-name }}
           MODEL_VERSION: ${{ github.event.inputs.model-version }}
-          SERVICE_NAME: ${{ github.event.inputs.service-name || 'iris-service' }}
+          SERVICE_NAME: ${{ github.event.inputs.service-name }}
 
       - name: Create comment
         if: ${{ github.event.inputs.issue-number != '' }}
