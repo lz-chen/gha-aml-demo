@@ -14,15 +14,7 @@ on:
       service-name:
         description: 'Deploy service name'
         required: true
-        default: 'irisservice'
-      az-workspace:
-        description: 'Azure workspace'
-        required: false
-        default: 'lc-onboarding'
-      az-resource-group:
-        description: 'Azure resource group'
-        required: false
-        default: 'lc-test'
+        default: 'iris-service'
       repository:
         description: 'The repository from which the slash command was dispatched'
         required: false
@@ -49,8 +41,8 @@ jobs:
         with:
           event_name: ${{ github.event_name }}
           issue_number: ${{ github.event.inputs.issue-number }}
-          az_workspace: ${{ github.event.inputs.az-workspace || 'lc-onboarding' }}
-          az_resource_group: ${{ github.event.inputs.az-resource-group || 'lc-test' }}
+          az_workspace: ${{ secrets.AZURE_WORKSPACE }}
+          az_resource_group: ${{ secrets.AZURE_RESOURCE_GROUP }}
           az_secret: ${{ secrets.AZURE_LOGIN }}
 
       - name: Setting env var for train parameter file
@@ -59,12 +51,12 @@ jobs:
           case $deploy_env in
             Production | Staging)
               inf_config=./code/deploy/config/prd_inference_config.json
-              deploy_config=./code/deploy/config/prd_aks_deploy.json
+              deploy_config=./code/deploy/config/prd_aci_deploy.json
               echo "$deploy_env env, using ${inf_config} and ${deploy_config}"
               ;;
             *)
               inf_config=./code/deploy/config/dev_inference_config.json
-              deploy_config=./code/deploy/config/dev_aks_deploy.json
+              deploy_config=./code/deploy/config/dev_aci_config.json
               echo "$deploy_env env, using ${inf_config} and ${deploy_config}"
               ;;
           esac
