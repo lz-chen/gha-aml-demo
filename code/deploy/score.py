@@ -2,12 +2,13 @@ import joblib
 import numpy as np
 from azureml.core import Model
 from azureml.monitoring import ModelDataCollector
+from config.constants import MODEL_NAME
 from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType
 from inference_schema.parameter_types.standard_py_parameter_type import (
     StandardPythonParameterType,
 )
 from inference_schema.schema_decorators import input_schema, output_schema
-from .constants import MODEL_NAME
+
 
 # The init() method is called once, when the web service starts up.
 # Typically you would deserialize the model file, as shown here using joblib,
