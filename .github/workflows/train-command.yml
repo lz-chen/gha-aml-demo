@@ -57,7 +57,7 @@ jobs:
           Production | Staging)
             param_file="prd_params.json" && echo "$deploy_env env, using prd_params.json"
             ;;
-          *)
+          Development)
             param_file="dev_params.json" && echo "$deploy_env env, using dev_params.json"
             ;;
         esac
@@ -65,7 +65,7 @@ jobs:
             param_file=${{ github.event.inputs.param-file }}
             echo "using ${{ github.event.inputs.param-file }} from input"
         fi
-        export "PARAM_FILE=$param_file" >> $GITHUB_ENV
+        echo "PARAM_FILE=$param_file" >> $GITHUB_ENV
 
     - name: Create URL to the run output
       id: vars
