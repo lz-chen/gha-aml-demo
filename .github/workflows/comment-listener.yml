@@ -1,4 +1,4 @@
-name: slash-command
+name: comment-listener
 
 on:
   issue_comment:

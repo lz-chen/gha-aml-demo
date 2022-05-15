@@ -34,10 +34,6 @@ on:
         description: "Penalty for SVM model"
         required: false
         default: "0.1"
-      model-name:
-        description: "Name of the trained model"
-        required: true
-        default: "iris_model"
 
 concurrency: train-refs/pull/${{ github.event.inputs.issue-number }}/head
 
@@ -79,7 +75,7 @@ jobs:
         --conda-dependencies ./code/train/environment.yaml \
         --experiment-name iris_experiment \
         --source-directory ./code/train \
-        --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY} --model_name ${MODEL_NAME})
+        --ct cpu-cluster train.py --kernel ${KERNEL} --penalty ${PENALTY})
         echo ::set-output name=response::$res
       env:
         KERNEL: ${{ github.event.inputs.kernel || 'linear' }}
