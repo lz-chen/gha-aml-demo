@@ -45,8 +45,8 @@ jobs:
 
       - name: Setting env var for deploy and inference config
         run: |
-          inf_config=${{ secrets.INFERENCE_CONFIG_FILE }}
-          deploy_config=${{ secrets.DEPLOY_CONFIG_FILE }}
+          inf_config=code/deploy/config/dev_inference_config.json
+          deploy_config=code/deploy/config/dev_aci_config.json
           echo "INFERENCE_CONFIG=$inf_config" >> $GITHUB_ENV        
           echo "DEPLOY_CONFIG=$deploy_config" >> $GITHUB_ENV
 

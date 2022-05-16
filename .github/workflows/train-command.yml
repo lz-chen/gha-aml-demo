@@ -53,7 +53,7 @@ jobs:
 
     - name: Setting env var for train parameter file
       run: |
-        param_file=${{ secrets.TRAIN_PARAM_FILE }}
+        param_file=./dev_params.json
         if [ ! -z "${{ github.event.inputs.param-file }}" ]; then      
             param_file=${{ github.event.inputs.param-file }}
             echo "using ${{ github.event.inputs.param-file }} from input"
