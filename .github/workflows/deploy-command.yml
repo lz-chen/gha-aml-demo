@@ -24,6 +24,7 @@ on:
       issue-number:
         description: 'The issue number from which the slash command was created'
         required: false
+  repository_dispatch:
 
 jobs:
   deploy:
